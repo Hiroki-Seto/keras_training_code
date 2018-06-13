@@ -1,0 +1,5 @@
+
+model: wide-resnet
+batch size:256
+optimizer:SGD
+learning rate: conf-d1
