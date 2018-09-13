@@ -1,3 +1,4 @@
+# coding: utf8
 
 from keras.layers import Conv2D, BatchNormalization, Activation
 from keras.layers import Dense, Add, AveragePooling2D, Flatten
@@ -7,7 +8,7 @@ from keras import regularizers
 delta = 5e-4
 
 
-class TestModelBuild():
+class ModelBuild():
 
     def __init__(self, num_class, depth, width):
         self.num_class = num_class

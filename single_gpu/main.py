@@ -11,11 +11,11 @@ import keras.backend as K
 from time import time
 from keras.layers import Input
 from keras.utils import to_categorical
-from wide_resnet import TestModelBuild
+from models.wide_resnet import ModelBuild
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import SGD
 from keras.callbacks import LearningRateScheduler, Callback
-from cycle_lr import SGDRScheduler
+
 
 class TimeLog(Callback):
     def on_batch_begin(self, batch, logs={}):
@@ -33,6 +33,7 @@ class TimeLog(Callback):
     def on_epoch_end(self, epoch, logs={}):
         print(np.mean(self.timelog))
 
+
 class CustomLRSchedule(object):
 
     def __init__(self, d):
@@ -43,13 +44,14 @@ class CustomLRSchedule(object):
             return self.d[epoch]
         return lr
 
+
 def parse():
     parser = argparse.ArgumentParser()
-    
+
     parser.add_argument('-c', '--configpath')
     parser.add_argument('-o', '--outputdir')
     args = parser.parse_args()
-    
+
     return args
 
 
@@ -85,30 +87,29 @@ if __name__ == "__main__":
     g_config.gpu_options.per_process_gpu_memory_fraction = 0.4
     sess = tf.Session(config=g_config)
     K.set_session(sess)
-    
-    builder = TestModelBuild(10, 28, 10)
+
+    builder = ModelBuild(10, 28, 10)
     inputs = Input(shape=(32, 32, 3))
     model = builder.build(inputs)
-    
-    BASE_DIR = "../data/"
-    
+
+    BASE_DIR = "./data/"
+
     X_train = np.load(os.path.join(BASE_DIR, "X_train.npy"))
     y_train = np.load(os.path.join(BASE_DIR, "y_train.npy"))
     X_test = np.load(os.path.join(BASE_DIR, "X_test.npy"))
     y_test = np.load(os.path.join(BASE_DIR, "y_test.npy"))
-    
+
     mean = X_train.mean(axis=(0, 1, 2))
     std = X_train.std(axis=(0, 1, 2))
-    
+
     X_train = (X_train - mean) / std
     X_test = (X_test - mean) / std
-    
-    
+
     num_class = len(np.unique(y_train))
     y_train = to_categorical(y_train, num_classes=num_class)
     y_test = to_categorical(y_test, num_classes=num_class)
-    
-    if d["optimizer"] == "sgd": 
+
+    if d["optimizer"] == "sgd":
         opt = SGD(lr=lr, momentum=0.9, nesterov=True)
     elif d["optimizer"] == "rmsprop":
         pass
@@ -116,26 +117,19 @@ if __name__ == "__main__":
         pass
 
     model.compile(opt, loss="categorical_crossentropy", metrics=["acc"])
-    
+
     conf_name = config_path.split("/")[-1]
     shutil.copy(config_path, os.path.join(output_path, conf_name))
 
     data_size = X_train.shape[0]
     max_epochs = max_epochs
     batch_size = batch_size
-    #cycle = SGDRScheduler(min_lr=1e-4,
-    #                      max_lr=2e-2,
-    #                      steps_per_epoch=np.ceil(data_size/batch_size),
-    #                      lr_decay=0.9,
-    #                      cycle_length=1170,
-    #                      mult_factor=1.5)
     callbacks = []
-    #callbacks.append(cycle)
     callbacks.append(LearningRateScheduler(schedule=schedule, verbose=1))
     gen = ImageDataGenerator(horizontal_flip=True,
                              width_shift_range=0.125,
                              height_shift_range=0.125)
-    
+
     gen.fit(X_train)
     steps_per_epoch = X_train.shape[0] // batch_size
     model.save(os.path.join(os.path.join(output_path, "init-model.hdf5")))
@@ -147,6 +141,6 @@ if __name__ == "__main__":
                                   verbose=1,
                                   callbacks=callbacks,
                                   validation_data=(X_test, y_test))
-    
+
     model.save(os.path.join(output_path, "last-model.hdf5"))
     json.dump(history.history, open(os.path.join(output_path, "history.json"), "w"))
