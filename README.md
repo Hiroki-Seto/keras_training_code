@@ -10,5 +10,5 @@ Pruning code.
 Distillation code.  
 Cyclic learning rate code.  
 
-実装したいもの
+実装したいもの  
 Cifar100でのtraining code.  
