@@ -1,6 +1,7 @@
 # keras_training_code
-kerasでcifar10でのモデルの精度を確かめるレポジトリ．
-実装済み．
+
+kerasでcifar10でのモデルの精度を確かめるレポジトリ．  
+実装済み．  
  wide resnet model: 精度95%程度達成．  
  
 
