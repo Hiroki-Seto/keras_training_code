@@ -36,14 +36,36 @@ def create_mask_dict(model, sess, prune_rate):
 
 def create_mask_fn(model, mask_dict):
 
-    op = tf.assgin(1+1)
-    return op
+    layers = model.layers
+
+    ops = []
+    for lay in layers:
+        name = lay.name
+        if name in mask_dict:
+            mask = mask_dict[name]
+            mask = tf.convert_to_tensor(mask, dtype=tf.float32)
+            w = lay.weights[0]
+            fn = w * mask
+            assign = tf.assign(w, fn)
+            ops.append(assign)
+    return ops
 
 
 class PruneWeights(Callback):
 
-    def __init__(self, model, prune_rate=0.1):
+    def __init__(self, model, sess, timing=10, prune_rate=0.1):
         self.model = model
-        self.mask_mat = create_mask_dict(model)
+        self.sess = sess
+        self.timing = timing
         self.prune_rate = prune_rate
-        self.mask_fn = create_mask_fn
+        self.mask_dict = create_mask_dict(model, sess, prune_rate)
+        self.mask_fn = create_mask_fn(model, self.mask_dict)
+
+    def test_call(self):
+        self.sess.run(self.mask_fn)
+
+    def on_epoch_begin(self, epoch, logs={}):
+
+        if (epoch % self.timing == 0):
+            print("Prune")
+            self.sess.run(self.mask_fn)
