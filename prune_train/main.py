@@ -107,7 +107,8 @@ if __name__ == "__main__":
                                   steps_per_epoch=steps_per_epoch,
                                   epochs=max_epoch,
                                   verbose=1,
-                                  callbacks=callbacks)
+                                  callbacks=callbacks,
+                                  validation_data=(X_test, y_test))
     model.save(os.path.join(output_path, "last_model.hdf5"))
     with open(os.path.join(output_path, "history.json"), "w") as f:
         json.dump(history.history, f)
