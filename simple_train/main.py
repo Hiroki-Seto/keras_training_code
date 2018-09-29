@@ -14,7 +14,7 @@ from keras.utils import to_categorical
 from models.wide_resnet import ModelBuild
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import SGD
-from keras.callbacks import LearningRateScheduler, Callback
+from keras.callbacks import LearningRateScheduler, Callback, ModelCheckpoint
 
 
 class TimeLog(Callback):
@@ -70,9 +70,8 @@ if __name__ == "__main__":
     d = config.config_dict
 
     lr = d["lr"]
-    max_epochs = d["max_epochs"]
+    max_epoch = d["max_epoch"]
     batch_size = d["batch_size"]
-    max_epochs = d["max_epochs"]
 
     if d["lr_ctl"]["type"] == "sch":
         schedule_dict = d["lr_ctl"]["sch"]
@@ -82,22 +81,12 @@ if __name__ == "__main__":
         # TODO cyclical learning rateを実装する予定．
         pass
 
-    # Tensorflow GPU config
-    g_config = tf.ConfigProto()
-    g_config.gpu_options.per_process_gpu_memory_fraction = 0.4
-    sess = tf.Session(config=g_config)
-    K.set_session(sess)
+    data_dir = d["data_dir"]
 
-    builder = ModelBuild(10, 28, 10)
-    inputs = Input(shape=(32, 32, 3))
-    model = builder.build(inputs)
-
-    BASE_DIR = "./data/"
-
-    X_train = np.load(os.path.join(BASE_DIR, "X_train.npy"))
-    y_train = np.load(os.path.join(BASE_DIR, "y_train.npy"))
-    X_test = np.load(os.path.join(BASE_DIR, "X_test.npy"))
-    y_test = np.load(os.path.join(BASE_DIR, "y_test.npy"))
+    X_train = np.load(os.path.join(data_dir, "X_train.npy"))
+    y_train = np.load(os.path.join(data_dir, "y_train.npy"))
+    X_test = np.load(os.path.join(data_dir, "X_test.npy"))
+    y_test = np.load(os.path.join(data_dir, "y_test.npy"))
 
     mean = X_train.mean(axis=(0, 1, 2))
     std = X_train.std(axis=(0, 1, 2))
@@ -108,6 +97,10 @@ if __name__ == "__main__":
     num_class = len(np.unique(y_train))
     y_train = to_categorical(y_train, num_classes=num_class)
     y_test = to_categorical(y_test, num_classes=num_class)
+
+    builder = ModelBuild(num_class, 28, 10)
+    inputs = Input(shape=(32, 32, 3))
+    model = builder.build(inputs)
 
     if d["optimizer"] == "sgd":
         opt = SGD(lr=lr, momentum=0.9, nesterov=True)
@@ -122,10 +115,14 @@ if __name__ == "__main__":
     shutil.copy(config_path, os.path.join(output_path, conf_name))
 
     data_size = X_train.shape[0]
-    max_epochs = max_epochs
     batch_size = batch_size
     callbacks = []
     callbacks.append(LearningRateScheduler(schedule=schedule, verbose=1))
+    callbacks.append(ModelCheckpoint(os.path.join(output_path, "best_acc_model.hdf5"),
+                                     monitor="val_acc",
+                                     verbose=1,
+                                     save_best_only=True))
+
     gen = ImageDataGenerator(horizontal_flip=True,
                              width_shift_range=0.125,
                              height_shift_range=0.125)
@@ -137,7 +134,7 @@ if __name__ == "__main__":
                                   y_train,
                                   batch_size=batch_size),
                                   steps_per_epoch=steps_per_epoch,
-                                  epochs=max_epochs,
+                                  epochs=max_epoch,
                                   verbose=1,
                                   callbacks=callbacks,
                                   validation_data=(X_test, y_test))

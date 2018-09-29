@@ -1,9 +1,9 @@
 import os
 import numpy as np
-from keras.datasets import cifar10
+from keras.datasets import cifar100
 
-(X_train, y_train), (X_test, y_test) = cifar10.load_data()
-BASE_DIR = "../data/"
+(X_train, y_train), (X_test, y_test) = cifar100.load_data()
+BASE_DIR = "../data/cifar100"
 if not os.path.exists(BASE_DIR):
     os.makedirs(BASE_DIR)
 

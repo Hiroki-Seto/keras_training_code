@@ -56,20 +56,12 @@ if __name__ == "__main__":
     max_epoch = d["max_epoch"]
     batch_size = d["batch_size"]
 
-    init_modelpath = d["init_modelpath"]
-    if init_modelpath == "":
-        mbuilder = ModelBuild(10, 28, 10)
-        inputs = Input((32, 32, 3))
-        model = mbuilder(inputs)
-    else:
-        model = load_model(init_modelpath)
+    data_dir = d["data_dir"]
 
-    BASE_DIR = "./data"
-
-    X_train = np.load(os.path.join(BASE_DIR, "X_train.npy"))
-    y_train = np.load(os.path.join(BASE_DIR, "y_train.npy"))
-    X_test = np.load(os.path.join(BASE_DIR, "X_test.npy"))
-    y_test = np.load(os.path.join(BASE_DIR, "y_test.npy"))
+    X_train = np.load(os.path.join(data_dir, "X_train.npy"))
+    y_train = np.load(os.path.join(data_dir, "y_train.npy"))
+    X_test = np.load(os.path.join(data_dir, "X_test.npy"))
+    y_test = np.load(os.path.join(data_dir, "y_test.npy"))
 
     mean = X_train.mean(axis=(0, 1, 2))
     std = X_train.std(axis=(0, 1, 2))
@@ -85,6 +77,14 @@ if __name__ == "__main__":
         opt = SGD(lr=lr, momentum=0.9, nesterov=True)
     else:
         pass
+
+    init_modelpath = d["init_modelpath"]
+    if init_modelpath == "":
+        mbuilder = ModelBuild(num_class, 28, 10)
+        inputs = Input((32, 32, 3))
+        model = mbuilder(inputs)
+    else:
+        model = load_model(init_modelpath)
 
     model.compile(opt, loss="categorical_crossentropy", metrics=["acc"])
 
@@ -109,6 +109,15 @@ if __name__ == "__main__":
                                   verbose=1,
                                   callbacks=callbacks,
                                   validation_data=(X_test, y_test))
+    callbacks[0].call()
     model.save(os.path.join(output_path, "last_model.hdf5"))
     with open(os.path.join(output_path, "history.json"), "w") as f:
         json.dump(history.history, f)
+
+    # check accuracy with after prune.
+    preds_prob = model.predict(X_test)
+    preds = np.argmax(preds_prob, axis=-1)
+    y_true = np.argmax(y_test, axis=-1)
+    match = (y_true == preds)
+    acc = np.sum(match) / len(y_true)
+    print("Pruning Accuracy: {0}".format(acc))
