@@ -17,4 +17,5 @@ python prune_train/main.py --config_path conf/prune_config.py --output_dir outpu
 
 ## 追加予定．  
 Distillation code.  
+↑soft targetの学習を実装してみる．温度Tはcallbackでコントロールする．またモデルを作成する際に温度Tを計算するlayerを加える．
 Cyclic learning rate code.  
