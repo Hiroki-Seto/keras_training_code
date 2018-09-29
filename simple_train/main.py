@@ -48,8 +48,8 @@ class CustomLRSchedule(object):
 def parse():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-c', '--configpath')
-    parser.add_argument('-o', '--outputdir')
+    parser.add_argument('-c', '--config_path')
+    parser.add_argument('-o', '--output_dir')
     args = parser.parse_args()
 
     return args

@@ -32,7 +32,7 @@ def parse():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--config_path", required=True)
-    parser.add_argument("--outputdir", required=True)
+    parser.add_argument("--output_dir", required=True)
 
     args = parser.parse_args()
 
