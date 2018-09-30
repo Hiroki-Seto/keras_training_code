@@ -5,7 +5,10 @@ from keras.layers import Dense, Add, AveragePooling2D, Flatten
 from keras.models import Model
 from keras import regularizers
 
-delta = 5e-4
+# 下記の値は，cifar10で精度を出した設定．
+# delta = 5e-4
+# cifar100用に強めてみる．
+delta = 5e-4 * 2
 
 
 class ModelBuild():

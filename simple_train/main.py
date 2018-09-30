@@ -60,8 +60,8 @@ if __name__ == "__main__":
     # コマンドライン引数を取得
     args = parse()
 
-    config_path = args.configpath
-    output_path = args.outputdir
+    config_path = args.config_path
+    output_path = args.output_dir
 
     if not os.path.exists(output_path):
         os.makedirs(output_path)
