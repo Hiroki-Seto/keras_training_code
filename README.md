@@ -4,7 +4,7 @@
 kerasでcifar10 or cifar100でのモデルの精度を確かめるレポジトリ．  
 
 ## 実装済み．  
-wide resnet model: 精度95%程度達成．caifer100の学習方法を検討中，精度は80%超を目指す．  
+wide resnet model: 精度95%程度達成(Denseを除く。)．caifer100の学習方法を検討中，精度は80%超を目指す．  
 ```shell
 実行コード．
 python simple_train/main.py --config_path conf/base_config_c10.py --output_dir output_dir_name
@@ -24,3 +24,4 @@ python prune_train/main.py --config_path conf/prune_config.py --output_dir outpu
 ## コード整理TODO．
 - modelが複数できたのでをstringでコントロールできるクラスを作成する．
 - 各main.pyのコードが重複しているので統合する．
+- Dense層の圧縮を行うかを選択的にする。
