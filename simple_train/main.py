@@ -50,6 +50,7 @@ def parse():
 
     parser.add_argument('-c', '--config_path')
     parser.add_argument('-o', '--output_dir')
+    parser.add_argument("--debug", action="store_true")
     args = parser.parse_args()
 
     return args
@@ -62,6 +63,7 @@ if __name__ == "__main__":
 
     config_path = args.config_path
     output_path = args.output_dir
+    debug = args.debug
 
     if not os.path.exists(output_path):
         os.makedirs(output_path)
@@ -87,6 +89,12 @@ if __name__ == "__main__":
     y_train = np.load(os.path.join(data_dir, "y_train.npy"))
     X_test = np.load(os.path.join(data_dir, "X_test.npy"))
     y_test = np.load(os.path.join(data_dir, "y_test.npy"))
+
+    if debug:
+        X_train = X_train[:100]
+        y_train = y_train[:100]
+        X_test = X_test[:100]
+        y_test = y_test[:100]
 
     mean = X_train.mean(axis=(0, 1, 2))
     std = X_train.std(axis=(0, 1, 2))
@@ -140,4 +148,5 @@ if __name__ == "__main__":
                                   validation_data=(X_test, y_test))
 
     model.save(os.path.join(output_path, "last-model.hdf5"))
-    json.dump(history.history, open(os.path.join(output_path, "history.json"), "w"))
+    with open(os.path.join(output_path, "history.json") as f:
+        json.dump(history.history, f)
