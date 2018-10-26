@@ -148,5 +148,5 @@ if __name__ == "__main__":
                                   validation_data=(X_test, y_test))
 
     model.save(os.path.join(output_path, "last-model.hdf5"))
-    with open(os.path.join(output_path, "history.json") as f:
+    with open(os.path.join(output_path, "history.json")) as f:
         json.dump(history.history, f)

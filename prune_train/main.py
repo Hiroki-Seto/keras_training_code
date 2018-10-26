@@ -10,11 +10,12 @@ import keras.backend as K
 from keras.layers import Input
 from keras.utils import to_categorical
 from keras.models import load_model
-from models.wide_resnet import ModelBuild
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import SGD
 
+from models.wide_resnet import ModelBuild
 from opt.prune_mask import PruneWeights
+from opt.freeze_layer import freeze_layer
 
 
 def CustopmLRSchedule(object):
@@ -85,7 +86,9 @@ if __name__ == "__main__":
         model = mbuilder(inputs)
     else:
         model = load_model(init_modelpath)
-
+    # change the trainable flag
+    freeze_cls_type = d["freeze_cls_type"]
+    freeze_layer(model, freeze_cls_type)
     model.compile(opt, loss="categorical_crossentropy", metrics=["acc"])
 
     conf_name = config_path.split("/")[-1]
@@ -95,8 +98,13 @@ if __name__ == "__main__":
     sess = K.get_session()
     timing = d["timing"]
     prune_rate = d["prune_rate"]
+    prune_type = d["prune_type"]
     callbacks = []
-    callbacks.append(PruneWeights(model, sess, timing=timing, prune_rate=prune_rate))
+    callbacks.append(PruneWeights(model,
+                                  sess,
+                                  prune_type=prune_type,
+                                  timing=timing,
+                                  prune_rate=prune_rate))
     gen = ImageDataGenerator(horizontal_flip=True,
                              width_shift_range=0.125,
                              height_shift_range=0.125)

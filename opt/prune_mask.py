@@ -6,7 +6,7 @@ from keras.layers import Conv2D, Dense
 from keras.callbacks import Callback
 
 
-def create_mask_dict(model, sess, prune_rate, mode):
+def create_mask_dict(model, sess, prune_rate, cls_type):
     """
 
     Parameters
@@ -19,12 +19,14 @@ def create_mask_dict(model, sess, prune_rate, mode):
     layers = model.layers
 
     mask_dict = {}
-    if mode == "Conv":
+    if cls_type == "Conv2D":
         target_cls = Conv2D
-    elif mode == "Dense":
+    elif cls_type == "Dense":
         target_cls = Dense
     for lay in layers:
         cls_type = lay.__class__
+        if not lay.trainable:
+            continue
         if (cls_type == target_cls):
             name = lay.name
             w_abs = np.abs(lay.get_weights()[0])
@@ -68,7 +70,7 @@ class PruneWeights(Callback):
     """
     """
 
-    def __init__(self, model, sess, timing=10, prune_rate=0.1):
+    def __init__(self, model, sess, prune_cls="Conv2D", timing=10, prune_rate=0.1):
         """
         Parameters
         ----------
@@ -77,7 +79,7 @@ class PruneWeights(Callback):
         self.sess = sess
         self.timing = timing
         self.prune_rate = prune_rate
-        self.mask_dict = create_mask_dict(model, sess, prune_rate)
+        self.mask_dict = create_mask_dict(model, sess, prune_rate, prune_cls)
         self.mask_fn = create_mask_fn(model, self.mask_dict)
 
     def call(self):
